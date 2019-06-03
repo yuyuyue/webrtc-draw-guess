@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-socket": "^4.4.0",
+    "koa-static": "^5.0.0",
+    "path": "^0.12.7",
+    "socket.io": "^2.2.0"
+  }
+}

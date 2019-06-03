@@ -1,0 +1,557 @@
+/* 基本配置 */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+ul li {
+  list-style: none
+}
+
+html, body {
+  background-color: #f7f7f7;
+  position: relative;
+}
+/* 基本配置 */
+
+
+/* 布局 */
+.container {
+  display: flex;
+  margin: 0 auto;
+  width: 1200px;
+  height: 600px;
+  border: 2px solid #f7f7f7;
+  background-color: #fff;
+  border-radius: 5px;
+}
+
+.left {
+  width: 200px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.right {
+  width: 350px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.center {
+  flex: 1;
+  background-color: #f7f7f7;
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+.shade {
+  position: fixed;
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.new {
+  margin-top: 200px;
+  margin-left: 550px;
+}
+.new input {
+  width: 200px;
+  height: 30px;
+  padding: 3px 0 3px 10px;
+  box-sizing: border-box;
+  position: relative;
+  outline: none;
+  border: 1px solid #707070;
+  top: -10px;
+  left: 5px;
+  color: #707070;
+  border-radius: 5px;
+}
+.new input + span {
+  content: url(./images/submit.svg);
+  width: 30px;
+  height: 30px;
+  margin-top: 5px;
+  margin-left: 20px;
+  cursor: pointer;
+}
+.shade i {
+  content: url(./images/close.svg);
+  width: 30px;
+  height: 30px;
+  margin-left: 90%;
+  margin-top: 4%;
+  cursor: pointer;
+}
+/* 布局 */
+
+/* 头部 */
+.header {
+  width: 1200px;
+  margin: 50px auto 0;
+  height: 50px;
+  border: 1px solid #fff;
+  border-bottom: 0;
+  overflow: hidden;
+  text-align: right;
+  position: relative;
+}
+.header .createUser {
+  float: left;
+  content: url(./images/new.svg);
+  width: 40px;
+  height: 40px;
+  margin-top: 5px;
+  margin-left: 30px;
+  cursor: pointer;
+}
+.createUser:hover + P{
+  top: 50%;
+}
+.createUser + p {
+  position: absolute;
+  top: -100%;
+  left: 11%;
+  transform: translate(-50%,-50%);
+  color: #707070;
+  font-size: 20px;
+  transition: all 0.3s;
+}
+
+.user {
+  content: url(./images/account.svg);
+  right: 13%;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  margin-top: 5px;
+  float: right;
+}
+.user + p {
+  font-size: 26px;
+  height: 40px;
+  line-height: 40px;
+  width: 500px;
+  float: right;
+  text-align: right;
+  padding-right: 20px;
+  color: #707070;
+  position: relative;
+  top: 5px;
+}
+/* 头部 */
+
+
+/* 左侧房间列表 */
+.home {
+  content: url(./images/home.svg);
+  margin-top: 10px;
+  margin-left: 10px;
+  width: 35px;
+  height: 35px;
+}
+.home:hover + span {
+  top: 3%;
+}
+.left span {
+  position: absolute;
+  top: -20%;
+  left: 30%;
+  height: 30px;
+  color: #707070;
+  line-height: 30px;
+  transform: translate(-10%, 0%);
+  transition: all 0.3s;
+}
+
+.list {
+  text-align: center;
+}
+.userList {
+  height: 160px;
+}
+.list p {
+  height: 40px;
+  line-height: 40px;
+  cursor: pointer;
+  position: relative;
+}
+
+.list p:first-child {
+  margin-top: 10px;
+}
+
+.list p:nth-of-type(n) {
+  background-color: #f7f7f7;
+}
+
+.list p:nth-of-type(2n) {
+  background-color: #ffffff;
+}
+
+.list p span {
+  position: absolute;
+  top: 50%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+  display: inline-block;
+  border: 1px solid #707070;
+  color: #707070;
+  font-size: 11px;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 2px;
+  height: 20px;
+  width: 40px;
+}
+.userList p{
+  cursor: default;
+}
+.left-bottom {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  height: 100px;
+}
+.roomops {
+  float: left;
+  width: 100%;
+  height: 50px;
+  position: relative;
+  overflow: hidden;
+}
+.roomop {
+  margin-top: 5px;
+  cursor: pointer;
+}
+.roomop:hover + p{
+  top: 0%;
+}
+.roomop + p {
+  position: absolute;
+  width: 100px;
+  top: -100%;
+  left: 30%;
+  transition: all 0.3s;
+  transform: translateY(-30%,0%);
+  line-height: 50px;
+  text-align: center;
+  color: #707070;
+  font-size: 16px;
+}
+.createRoom {
+  margin-left: 20px;
+  width: 40px;
+  height: 40px;
+  content: url(./images/newroom.svg);
+}
+.drap {
+  width: 35px;
+  height: 35px;
+  margin-left: 25px;
+  content: url(./images/drap.svg);
+}
+/* 左侧房间列表 */
+
+/* 画板区域 */
+
+.draw {
+  content: url(./images/draw.svg);
+  width: 35px;
+  height: 35px;
+  margin-top: 10px;
+  margin-left: 50px;
+  position: relative;
+}
+
+.center head {
+  height: 55px;
+  position: relative;
+  overflow: hidden;
+}
+.draw:hover + p {
+  top: 3%;
+}
+
+.head p {
+  position: absolute;
+  top: -20%;
+  left: 15%;
+  height: 35px;
+  line-height: 35px;  
+  color: #707070;
+  transition: top 0.3s;
+}
+
+.center ul {
+  width: 450px;
+  float: right;
+  height: 40px;
+  margin-top: 10px;
+}
+
+ul li {
+  position: relative;
+  cursor: pointer;
+  float: left;
+  width: 35px;
+  height: 35px;
+  margin-left: 15px;
+  border-radius: 5px;
+  border: 2px solid #707070;
+  text-align: center;
+  overflow: hidden;
+}
+
+ul li:hover {
+  box-shadow: 1px 0px 5px #707070;
+}
+.center .head ul li:hover span {
+  top: 50%;
+}
+.center .head ul li:nth-of-type(6):hover + .weight-select{
+  display: inline-block;
+}
+ul li img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+}
+.center .head ul li span {
+  background-color: #fff;
+  width: 30px;
+  height: 30px;
+  color: #707070;
+  text-align: center;
+  line-height: 30px;
+  position: absolute;
+  top: 150%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 14px;
+  z-index: 10;
+  transition: top 0.3s;
+}
+
+.weight-select {
+  width: 40px;
+  height: 100px;
+  position: absolute;
+  top: 7%;
+  left: 74.5%;
+  display: none;
+  transition: all 0.3s;
+}
+.weight-select:hover {
+  display: inline-block;
+}
+.weight-select p{
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 20px;
+  margin-bottom: 3px;
+  line-height: 20px;
+  text-align: center;
+  background-color: #fff;
+  cursor: pointer;
+}
+.weight-select p:first-child {
+  margin-top: 10px;
+}
+.weight-select p:hover {
+  background-color: #707070;
+  color: #f7f7f7;
+}
+.center-footer {
+  position: absolute;
+  bottom: 5px;
+  right: 0;
+  width: 300px;
+  margin-left: 10px;
+  height: 100px;
+}
+.questionTip {
+  font-size: 20px;
+  color: #707070;
+  text-align: center;
+  /* display: inline-block; */
+  width: 250px;
+  height: 50px;
+  line-height: 50px;
+  /* position: relative; */
+  /* top: 20px; */
+}
+.answer {
+  outline: none;
+  border: 1px solid#bfbfbf;
+  border-radius: 5px;
+  height: 25px;
+  line-height: 25px;
+  box-sizing: border-box;
+  padding-left: 10px;
+}
+.answerBtn {
+  width: 25px;
+  height: 25px;
+  content: url(./images/ok.svg);
+  cursor: pointer;
+  position: relative;
+  margin-left: 20px;
+  top: 8px;
+}
+.paintEnd {
+  width: 35px;
+  height: 35px;
+  content: url(./images/ok.svg);
+  cursor: pointer;
+  margin-left: 120px;
+}
+/* 画板区域 */
+
+/* 右侧房间信息 */
+.right {
+  display: none;
+}
+.right .head {
+  vertical-align: center;
+}
+.right .head i {
+  content: url(./images/wait.svg);
+  width: 45px;
+  height: 45px;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+.right .head i:hover + p {
+  top: 3%;
+}
+.right .head p {
+  position: absolute;
+  top: -20%;
+  left: 15%;
+  color: #707070;
+  transition: top 0.3s;
+}
+
+.chat {
+  position: relative;
+  overflow: hidden;
+}
+.chat i {
+  content: url(./images/chat.svg);
+  width: 35px;
+  height: 35px;
+  margin-left: 20px;
+}
+.chat i:hover + p {
+  top: 3%;
+}
+.chat i + p {
+  position: absolute;
+  top: -100%;
+  left: 18%;
+  color: #707070;
+  transition: top 0.3s;
+}
+.chatList {
+  margin: 0 auto;
+  width: 310px;
+  height: 280px;
+  background-color: #f7f7f7;
+  overflow:auto;
+}
+.chatList p {
+  width: 95%;
+  box-sizing: border-box;
+  padding-left: 15px;
+  display: inline-block;
+  color: #707070;
+  font-size: 14px;
+  line-height: 1;
+  word-break: normal;
+  word-wrap: break-word;
+}
+.submit i {
+  content: url(./images/send.svg);
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  margin-left: 50px;
+}
+.submit {
+  margin: 0 auto;
+  width: 310px;
+  height: 40px;
+  background-color: #f7f7f7;
+  position: relative;
+}
+.submit input {
+  width: 200px;
+  height: 25px;
+  padding: 3px 0 3px 10px;
+  color: #bfbfbf;
+  box-sizing: border-box;
+  position: relative;
+  outline: none;
+  border-radius: 5px;
+  border: 1px solid #bfbfbf;
+  top: -5px;
+  left: 30px;
+}
+/* 右侧房间信息 */
+/* 广播 */
+.broadcast {
+  position: fixed;
+  top: 0;
+  height: 50px;
+  line-height: 50px;
+  font-size: 25px;
+  color: #707070;
+  background-color: #f7f7f7;
+  border-radius: 5px;
+  text-align: right;
+  z-index: 10;
+  animation: broadcast 3s forwards ease-in-out;
+  transition: all 3s;
+}
+@keyframes broadcast {
+  0% {
+    right: 0;
+    opacity: 0;
+  }
+  50% {
+    right: 50px;
+    opacity: 1;
+  }
+  75% {
+    right: 50px;
+    opacity: 1;
+  }
+  100% {
+    right: 0;
+    opacity: 0;
+  }
+}
+/* 广播 */
+/* video */
+.video {
+  position: absolute;
+  background-color: #fff;
+  width: 600px;
+  height: 400px;
+  left: 25px;
+  top: 70px;
+}
+/* video */

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="./index.css">
+  <title>你画我猜</title>
+</head>
+
+<body>
+  <div id="shade" class="shade">
+    <i id="close"></i>
+    <div class="new">
+      <input id="new-input" type="text">
+      <span id="new-btn"></span>
+    </div>
+  </div>
+  <header>
+    <div id="header" class="header">
+      <i id="createUser" class="createUser">创建账号</i>
+      <p>创建账号...</p>
+      <i class="user">账号</i>
+    </div>
+  </header>
+  <div class="container">
+    <div class="left">
+      <i class="home">主页</i>
+      <span>房间列表...</span>
+      <div id="roomList" class="list"></div>
+      <div class="left-bottom">
+        <div class="roomops">
+          <i id="leaveRoom" class="roomop drap">退出房间</i>
+          <p>退出房间...</p>
+        </div>
+        <div id="createRoom" class="roomops">
+          <i class="roomop createRoom">创建房间</i>
+          <p>创建房间...</p>
+        </div>
+      </div>
+    </div>
+    <div id="center" class="center">
+      <div class="head">
+        <i class="draw"></i>
+        <p>画板...</p>
+        <ul>
+          <li id="pen">
+            <span>画笔</span>
+            <img src="./images/pen.svg" alt="画笔">
+          </li>
+          <li id="eraser">
+            <span>橡皮</span>
+            <img src="./images/eraser.svg" alt="橡皮">
+          </li>
+          <li id="back">
+            <span>撤退</span>
+            <img src="./images/back.svg" alt="撤回">
+          </li>
+          <li id="go">
+            <span>前进</span>
+            <img src="./images/go.svg" alt="前进">
+          </li>
+          <li id="clear">
+            <span>清屏</span>
+            <img src="./images/clear.svg" alt="清空">
+          </li>
+          <li id="weight">
+            <span>粗细</span>
+            <img src="./images/size.svg" alt="清空">
+          </li>
+          <div id="weight-select" class="weight-select">
+            <p>1px</p>
+            <p>5px</p>
+            <p>10px</p>
+            <p>30px</p>
+          </div>
+          <li id="color">
+            <span>颜色</span>
+            <img src="./images/color.svg" alt="清空">
+            <input id="colorInput" style="display:none;" type="color">
+          </li>
+        </ul>
+
+      </div>
+      <canvas id="canvas" width="600" height="400" style="margin: 20px 0 0 25px; background: #ffffff;">
+      </canvas>
+      <canvas id="timeCanvas" width="120" height="120" style="margin-left: 50px;"></canvas>
+      <!-- <video id="video" class="video" autoplay style="display: none"></video> -->
+      <div id="center-footer" class="center-footer">
+        <p id="questionTip" class="questionTip"></p>
+        <input id="answer" class="answer" type="text">
+        <a id="answerBtn" class="answerBtn"></a>
+      </div>
+      
+    </div>
+    <div id="right" class="right">
+      <div class="head">
+        <i>等待</i>
+        <p>准备中...</p>
+      </div>
+      <div id="userList" class="userList list"></div>
+      <div class="chat">
+        <i>聊天</i>
+        <p>聊天室...</p>
+        <div id="chatList" class="chatList">
+          
+        </div>
+        <div class="submit">
+          <input id="chatInput" type="text">
+          <i id="chatBtn"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.bootcss.com/socket.io/2.2.0/socket.io.js"></script>
+  <script>
+
+    var colorInput = document.getElementById('colorInput')
+    var color = document.getElementById('color')
+    var pen = document.getElementById('pen')
+    var eraser = document.getElementById('eraser')
+    var go = document.getElementById('go')
+    var backLi = document.getElementById('back')
+    var clear = document.getElementById('clear')
+    var createUserI = document.getElementById('createUser')
+    var close = document.getElementById('close')
+    var newBtn = document.getElementById('new-btn')
+    var newInput = document.getElementById('new-input')
+    var shade = document.getElementById('shade')
+    var selet = document.getElementById('weight-select')
+    var seletP = selet.querySelectorAll('p')
+    var createRoomI = document.getElementById('createRoom')
+    var leaveRoomI = document.getElementById('leaveRoom')
+    var roomList = document.getElementById('roomList')
+    var canvas = document.getElementById('canvas')
+    var timeCanvas = document.getElementById('timeCanvas')
+    var answer = document.getElementById('answer')
+    var answerBtn = document.getElementById('answerBtn')
+    var chatBtn = document.getElementById('chatBtn')
+    var chatInput = document.getElementById('chatInput')
+    // 创建绘图类
+    class Draw {
+      constructor(canvas, callBack) {
+        this.canvas = canvas
+        this.ctx = canvas.getContext('2d')
+        this.width = this.canvas.width
+        this.height = this.canvas.height
+        this.color = color
+        this.weight = weight
+        this.isMove = false
+        this.option = ''
+        // 用于撤回
+        this.imgData = []
+        // 记录当前帧
+        this.index = 0
+        // 现在的坐标
+        this.now = [0, 0]
+        // 移动前的坐标
+        this.last = [0, 0]
+        this.bindMousemove = this.onmousemove.bind(this)
+        this.callBack = callBack || function() {}
+      }
+      init() {
+        this.imgData.push(this.ctx.getImageData(0, 0, this.width, this.height))
+        this.color = "#707070"
+        this.weight = 10
+      }
+      onmousedown(event) {
+        this.last = [event.offsetX, event.offsetY]
+        this.canvas.addEventListener('mousemove', this.bindMousemove)
+      }
+      onmousemove(event) {
+        this.isMove = true
+        this.now = [event.offsetX, event.offsetY]
+        let data = [
+          this.last,
+          this.now,
+          this.weight,
+          this.color
+        ]
+        this.options(this.option, data)
+      }
+      onmouseup() {
+        this.canvas.removeEventListener('mousemove', this.bindMousemove)
+        if (this.isMove) {
+          this.isMove = false
+          this.options('getImage')
+        }
+      }
+      line(last, now, weight, color) {
+        this.ctx.beginPath()
+        this.ctx.lineCap = 'round'
+        this.ctx.lineJoin = 'round'
+        this.ctx.lineWidth = weight
+        this.ctx.strokeStyle = color
+        this.ctx.moveTo(last[0], last[1])
+        this.ctx.lineTo(now[0], now[1])
+        this.ctx.closePath()
+        this.ctx.stroke()
+        this.last = now
+      }
+      eraser(last, now, weight) {
+        this.ctx.save()
+        this.ctx.beginPath()
+        // console.log(now[0] , now[1])
+        this.ctx.arc(now[0], now[1], weight, 0, 2 * Math.PI)
+        this.ctx.closePath()
+        this.ctx.clip()
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx.fillStyle = '#fff'
+        this.ctx.fillRect(0, 0, this.width, this.height)
+        this.ctx.restore();
+      }
+      back() {
+        if (this.index > 0) {
+          --this.index
+          this.putImage()
+        }
+      }
+      go() {
+        if (this.index < this.imgData.length - 1) {
+          ++this.index
+          this.putImage()
+        }
+      }
+      clear() {
+        this.imgData = []
+        this.ctx.clearRect(0, 0, this.width, this.height)
+        this.index = 0
+        this.getImage()
+      }
+      getImage() {
+        this.index++
+        this.imgData.push(this.ctx.getImageData(0, 0, this.width, this.height))
+      }
+      putImage() {
+        this.ctx.clearRect(0, 0, this.width, this.height)
+        this.ctx.putImageData(this.imgData[this.index], 0, 0)
+      }
+      setWeight(weight) {
+        this.weight = weight
+      }
+      setColor(color) {
+        this.color = color
+      }
+      options(option, data) {
+        switch (option) {
+          case 'pen': {
+            this.line(...data)
+            this.callBack('pen', data)
+            break
+          }
+          case 'eraser': {
+            this.eraser(...data)
+            this.callBack('eraser', data)
+            break
+          }
+          case 'getImage': {
+            this.callBack('getImage')
+            this.getImage()
+            break
+          }
+          case 'go': {
+            this.callBack('go')
+            this.go()
+            break
+          }
+          case 'back': {
+            this.callBack('back')
+            this.back()
+            break
+          }
+          case 'clear': {
+            this.callBack('clear')
+            this.clear()
+            break
+          }
+          case 'setWeight': {
+            this.callBack('setWeight', data)
+            this.setWeight(data)
+            break
+          }
+          case 'setColor': {
+            this.callBack('setColor', data)
+            this.setColor(data)
+            break
+          }
+        }
+      }
+    }
+    class Time {
+      constructor(canvas) {
+        this.canvas = canvas
+        this.ctx = canvas.getContext('2d')
+        this.width = this.canvas.width
+        this.height = this.canvas.height
+        this.fontColor = '#bfbfbf'
+        this.fontSize = 30
+        this.lineWidth = 10
+        this.isAnimation = false
+        this.timer = function() {}
+      }
+      fillCircle() {
+        this.ctx.beginPath()
+        this.ctx.arc(this.width / 2, this.height / 2, this.width / 2, -0.5 * Math.PI, 1.5 * Math.PI)
+        this.ctx.closePath()
+        this.ctx.fillStyle = '#fff'
+        this.ctx.fill()
+      }
+      strokeText(text) {
+        this.ctx.textAlign = "center"
+        this.ctx.textBaseline = "middle"
+        this.ctx.font = `${this.fontSize}px icrosoft yahei`
+        this.ctx.fillStyle = this.fontColor
+        this.ctx.fillText(text, this.width / 2, this.height / 2);
+      }
+      drawStroke(startAng) {
+        this.ctx.beginPath()
+        this.ctx.lineWidth = 10
+        this.ctx.lineCap = 'round'
+        this.ctx.strokeStyle = '#bfbfbf'
+        this.ctx.arc(this.width / 2, this.height / 2, this.width / 2 - 5, startAng, 1.5 * Math.PI)
+        this.ctx.stroke()
+        this.ctx.closePath()
+      }
+      animation(allTime) {
+        this.isAnimation = true
+        let text = allTime
+        this.ctx.clearRect(0, 0, this.width, this.height)
+        this.fillCircle()
+        this.drawStroke(-0.5 * Math.PI)
+        this.strokeText(text)
+        this.timer = setInterval(() => {
+          text--
+          let angle = (allTime - text) / allTime * 2 * Math.PI - 0.5 * Math.PI
+          this.ctx.clearRect(0, 0, this.width, this.height)
+          this.fillCircle()
+          this.drawStroke(angle)
+          this.strokeText(text)
+          if (text === 0) {
+            clearInterval(this.timer)
+            this.isAnimation = false
+          }
+        }, 1000)
+      }
+      removeAnimation() {
+        clearInterval(this.timer)
+      }
+    }
+    var socket = io('ws://localhost:3000/')
+    var user = window.sessionStorage.user || ''
+    var room = window.sessionStorage.room || ''
+    var seletArr = Array.from(seletP)
+    var option = ''
+    var create = ''
+    var localstream = ''
+    var canDraw = false
+    var canGuess = false
+    var isAnswer = false
+    let iceServer = { // stun 服务，如果要做到 NAT 穿透，还需要 turn 服务
+      "iceServers": [
+        {
+          "url": "stun:stun.l.google.com:19302"
+        }
+      ]
+    };
+    var peers = {}
+    var channels = {}
+    var msgList = []
+    var peer = ''
+    var draw = new Draw(canvas, callBack)
+    var time = new Time(timeCanvas)
+    draw.init()
+    // 事件监听
+    window.onload = () => {
+      socket.emit('init', { room: room, user: user })
+    }
+    // 关闭监听
+    close.onclick = () => {
+      shade.style.display = 'none'
+    }
+    // 创建按钮监听，创建用户或者房间
+    newBtn.onclick = () => {
+      if (!newInput.value) {
+        alert('不能为空重新输入')
+        return
+      }
+      if (create === 'room') {
+        if (!user) {
+          alert('请先创建账户')
+          return
+        }
+        createRoom(newInput.value)
+      }
+      if (create === 'user') {
+        createUser(newInput.value)
+      }
+      create = ''
+      newInput.value = ''
+      close.click()
+    }
+    // 创建房间监听
+    createRoomI.onclick = () => {
+      if (window.sessionStorage.room) {
+        alert('已经在房间中，请退出再创建')
+        return
+      }
+      shade.style.display = 'block'
+      create = 'room'
+    }
+    // 创建用户监听
+    createUserI.onclick = () => {
+      if (window.sessionStorage.user) {
+        alert('已经创建了账号')
+        return
+      }
+      shade.style.display = 'block'
+      create = 'user'
+    }
+    // 点击退出房间
+    leaveRoomI.onclick = () => {
+      if (!room) {
+        alert('亲还没有加入房间')
+        return
+      }
+      leaveRoom()
+    }
+    // 选择尺寸按钮点击监听，设置尺寸
+    seletArr.map((selet) => {
+      selet.onclick = () => {
+        weight = parseInt(selet.textContent) || parseInt(selet.innerText)
+        console.log(weight)
+        draw.options('setWeight', weight)
+      }
+    })
+    // 颜色按钮点击监听，设置颜色
+    color.onclick = () => {
+      colorInput.click()
+    }
+    // 颜色改变监听，设置样式
+    colorInput.onchange = () => {
+      color.style.border = `2px solid ${colorInput.value}`
+      draw.options('setColor', colorInput.value)
+    }
+    // 画笔按钮点击监听
+    pen.onclick = () => {
+      option = 'pen'
+      optionChage(option)
+    }
+    go.onclick = () => {
+      draw.options('go')
+    }
+    back.onclick = () => {
+      draw.options('back')
+    }
+    clear.onclick = () => {
+      draw.options('clear')
+    }
+    eraser.onclick = () => {
+      option = 'eraser'
+      optionChage(option)
+    }
+    answerBtn.onclick = () => {
+      if (isAnswer) {
+        alert('你已经提交过答案，请等待')
+      }
+      if (!canGuess) {
+        alert('还不可以答题')
+        return
+      }
+      if (!answer.value) {
+        alert('答案不能为空')
+        return
+      }
+      if (confirm('只能提交一次答案哦,确定提交答案?')) {
+        isAnswer = true
+        socket.emit('submitAnswer', {user: user, room: room, answer: answer.value})
+      } else {
+        return
+      }
+      answer.innerHTML = ''
+    }
+    chatBtn.onclick = () => {
+      let loacalMsg = `你说: ${chatInput.value}`
+      let sendMsg = `${user}说: ${chatInput.value}`
+      msgList.push(loacalMsg)
+      updateMsgList(loacalMsg)
+      sendOther('text', sendMsg)
+      chatInput.value = ''
+    }
+    // 事件方法
+    function createRoom(inputValue) {
+      window.sessionStorage.room = inputValue
+      var roomList = document.getElementById('roomList')
+      var pList = Array.from(roomList.querySelectorAll('p'))
+      pList.map((p) => {
+        if (p.getAttribute('room') === inputValue) {
+          alert('房间已经存在,请创建别的房间')
+          return
+        }
+      })
+      room = window.sessionStorage.room
+      socket.emit('createRoom', { room: room })
+      joinRoom()
+    }
+    function joinRoom(data) {
+      showRoom()
+      socket.emit('joinRoom', { room: room, user: user })
+    }
+    function createUser(inputValue) {
+      window.sessionStorage.user = inputValue
+      user = window.sessionStorage.user
+      socket.emit('createUser', user)
+      showUser(user)
+    }
+    function optionChage(option) {
+      if (!canDraw) {
+        alert('你还不能绘画')
+        return
+      }
+      draw.option = option
+      draw.canvas.addEventListener('mousedown', (event) => {
+        draw.onmousedown(event)
+      })
+      window.addEventListener('mouseup', (event) => {
+        draw.onmouseup(event)
+      })
+    }
+    function callBack(option, data) {
+      console.log(option, data, '-----------');
+      sendOther(option, data)
+    }
+    function sendOther(option, data) {
+      if (option === 'text') {
+        data = {option: 'text', data: data}
+        for (let conn in channels) {
+          channels[conn].send(JSON.stringify(data))
+        }
+        msgList.push(data)
+      } else {
+        for (let conn in channels) {
+          // console.log('send', option)
+          channels[conn].send(JSON.stringify({option: option, data: data}))
+        }
+      }
+    }
+
+    // 界面方法
+    // 更新界面以及刷新时更新
+    function init(data) {
+      if (room) {
+        showRoom()
+        showUserList(data.roomusers)
+      }
+      if (user) {
+        showUser(user)
+      }
+      console.log(data.room)
+      if (data.room.length) {
+        showRoomList(data)
+      }
+    }
+    // 显示用户
+    function showUser(user) {
+      if (document.getElementById('userid')) {
+        return
+      }
+      var p = document.createElement('p')
+      var header = document.getElementById('header')
+      p.setAttribute('id', 'userid')
+      p.innerHTML = user
+      header.appendChild(p)
+    }
+    // 显示房间列表
+    function showRoomList(data) {
+      var roomList = document.getElementById('roomList')
+      roomList.innerHTML = ''
+      if (!data.room.length) {
+        return
+      }
+      data.room.map((r) => {
+        var p = document.createElement('p')
+        var span = document.createElement('span')
+        p.innerHTML = r.room
+        span.innerHTML = r.room === room ? '房间中' : `${r.length}/4`
+        p.setAttribute('id', r.room)
+        p.appendChild(span)
+        roomList.appendChild(p)
+        p.onclick = () => {
+          if (p.children[0].innerHTML == '4/4') {
+            alert('房间已满')
+            return
+          }
+          if (!user) {
+            alert('请先创建账号')
+            return
+          }
+          if (p.getAttribute('id') === room) {
+            return
+          }
+          if (room) {
+            leaveRoom()
+          }
+          window.sessionStorage.room = p.getAttribute('id')
+          room = p.getAttribute('id')
+          joinRoom()
+        }
+      })
+    }
+    // 显示用户列表
+    function showUserList(roomusers) {
+      var userList = document.getElementById('userList')
+      userList.innerHTML = ''
+      roomusers.map((roomuser) => {
+        var p = document.createElement('p')
+        var span = document.createElement('span')
+        p.innerHTML = roomuser.name
+        span.innerHTML = roomuser.state ? '已准备' : '未准备'
+        p.appendChild(span)
+        userList.appendChild(p)
+        if (roomuser.name === user) {
+          span.style.cursor = 'pointer'
+          span.onclick = () => {
+            roomuser.state = !roomuser.state
+            span.innerHTML = roomuser.state ? '已准备' : '未准备'
+            socket.emit('stateChange', { user: user, state: roomuser.state, room: room })
+          }
+        }
+      })
+    }
+    // 显示房间
+    function showRoom() {
+      var center = document.getElementById('center')
+      var right = document.getElementById('right')
+      center.style.display = 'block'
+      right.style.display = 'block'
+    }
+    // 隐藏房间
+    function hideRoom() {
+      var center = document.getElementById('center')
+      var right = document.getElementById('right')
+      center.style.display = 'none'
+      right.style.display = 'none'
+    }
+    // 用户离开房间
+    function leaveRoom() {
+      hideRoom()
+      socket.emit('leaveRoom', { room: room, user: user })
+      window.sessionStorage.room = ''
+      room = ''
+    }
+    // 房间用户改变，用于退出加入提醒
+    function broadcast(data) {
+      var p = document.createElement('p')
+      p.classList.add('broadcast')
+      p.innerHTML = data.msg
+      document.body.appendChild(p)
+      let promise = new Promise((resolve, reject) => {
+        setTimeout(resolve, 3000)
+      })
+      promise.then(() => {
+        document.body.removeChild(p)
+      })
+    }
+    // 游戏开始
+    function showGameList(roomusers) {
+      var userList = document.getElementById('userList')
+      userList.innerHTML = ''
+      roomusers.map((roomuser) => {
+        var p = document.createElement('p')
+        var span = document.createElement('span')
+        p.innerHTML = roomuser.name
+        span.innerHTML = roomuser.socre
+        p.appendChild(span)
+        userList.appendChild(p)
+      })
+    }
+    // 回答区域
+    function showGuessPage(data) {
+      var cf = document.getElementById('center-footer')
+      cf.style.display = 'block'
+      var span = document.getElementById('questionTip')
+      span.innerHTML = `提示:${data.question}个字`
+    }
+    // 展示答案
+    function showAnswer() {
+      var span = document.getElementById('questionTip')
+      span.innerHTML = `答案:${data.answer}`
+    }
+    // 回答方法
+    function showPaintPage(data) {
+      var cf = document.getElementById('center-footer')
+      cf.style.display = 'block'
+      var span = document.getElementById('questionTip')
+      span.innerHTML = `答案:${data.question}`
+      var answer = document.getElementById('answer')
+      answer.style.display = 'none'
+      var answerBtn = document.getElementById('answerBtn')
+      answerBtn.style.display = 'none'
+      var paintEnd = document.createElement('a')
+      paintEnd.classList.add('paintEnd')
+      cf.appendChild(paintEnd)
+      paintEnd.onclick = () => {
+        if (confirm('是否确定画好了')) {
+          canDraw = false
+          socket.emit('paintEnd', {room: room})
+        } else {
+          return
+        }
+      }
+    }
+    // 聊天界面
+    function updateMsgList(msg) {
+      var p = document.createElement('p')
+      p.innerHTML = msg
+      var chatList = document.getElementById('chatList')
+      chatList.appendChild(p)
+    }
+    // nat连接方法
+    function createPeers(data) {
+      if (user !== data.joinUser) {
+        let conn = [data.joinUser, user].join('-')
+        if (!peers[conn]) {
+          initPeer(conn)
+        }
+      } else if (data.joinUser === user) {
+        if (data.roomusers.length > 1) {
+          data.roomusers.forEach(roomuser => {
+            if (roomuser.name !== user) {
+              let conn = [data.joinUser, roomuser.name].join('-')
+              if (!peers[conn]) {
+                initPeer(conn)
+              }
+            }
+          })
+        }
+      }
+      if (data.joinUser === user) {
+        for (let conn in peers) {
+          createoffer(conn, peers[conn])
+        }
+      }
+    }
+    function createoffer(conn, peer) {
+      peer.createOffer({
+        offerToReceiveAudio: 1,
+        offerToReceiveVideo: 1
+      })
+      .then(offer => {
+        peer.setLocalDescription(offer, () => {
+          console.log('setLocalDescription-offer', peer.localDescription)
+          socket.emit('offer', {room: room, conn: conn, user: conn.split('-')[0], toUser: conn.split('-')[1], sdp: offer})
+        })
+      })
+    }
+    async function initPeer(conn) {
+      // 创建输出端 PeerConnection
+      let PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+      var peer = new PeerConnection()
+      // localstream = document.getElementById('canvas').captureStream()
+      // var localstream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      // peer.addStream(localstream)
+      // 监听ICE候选信息 如果收集到，就发送给对方
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('ice', {room: room, conn: conn, user: conn.split('-')[0], toUser: conn.split('-')[1], candidate: event.candidate})
+        }
+      }
+
+      peer.ondatachannel = (event) => {
+        var channel = event.channel
+        channel.binaryType = 'arraybuffer'
+        channel.onopen = (event) => { // 连接成功
+          console.log('channel onopen')
+        }
+        channel.onclose = function(event) { // 连接关闭
+          console.log('channel onclose')
+        }
+        channel.onmessage = (event) => { // 收到消息
+          let obj = JSON.parse(event.data)
+          let option = obj.option
+          let data = obj.data
+          // console.log('onmessage----------', data, option, event)
+          if (option === 'text') {
+            msgList.push(data)
+            updateMsgList(data)
+          } else {
+            switch (option) {
+              case 'pen': {
+                draw.line(...data)
+                break
+              }
+              case 'eraser': {
+                draw.eraser(...data)
+                break
+              }
+              case 'getImage': {
+                draw.getImage()
+                break
+              }
+              case 'back': {
+                draw.back()
+                break
+              }
+              case 'go': {
+                draw.go()
+                break
+              }
+              case 'clear': {
+                draw.clear()
+                break
+              }
+              case 'setWeight': {
+                draw.setWeight(...data)
+                break
+              }
+              case 'setColor': {
+                draw.setColor(...data)
+                break
+              }
+            }
+          }
+          // console.log('channel onmessage', e.data);
+        }
+      }  
+  
+      // peer.onaddstream = (event) => {
+      //   console.log(`onaddstream`)
+      //   console.log(canDraw)
+      //   if (canDraw) {
+      //     video.style.display = 'none'
+      //     return
+      //   }
+      //   var video = document.getElementById('video')
+      //   video.style.display = 'block'
+      //   video.srcObject = event.stream
+      // }
+      peers[conn] = peer
+      channels[conn] = await peer.createDataChannel('messagechannel')
+    }
+
+    // socket的监听
+    socket.on('init', (data) => {
+      init(data)
+    })
+    socket.on('joinedRoom', data => {
+      showRoom()
+      showUserList(data.roomusers)
+      if (data.roomusers.length > 1) {
+        console.log('-------------------')
+        createPeers(data)
+      }
+    })
+    socket.on('leaveRoom', (data) => {
+      data.leaveUser === user ? hideRoom() : showUserList(data.roomusers)
+    })
+    socket.on('roomChange', (data) => {
+      showRoomList(data)
+    })
+    socket.on('broadcast', (data) => {
+      broadcast(data)
+    })
+
+    // 玩家准备
+    socket.on('stateChanged', (data) => {
+      showUserList(data.roomusers)
+    })
+    // 全部玩家准备, 游戏开始
+    socket.on('gameStart', data => {
+      showGameList(data.roomusers)
+      time.animation(60)
+    })
+    socket.on('guessPage', (data) => {
+      showGuessPage(data)
+    })
+    socket.on('guessStart', () => {
+      canGuess = true
+      time.animation(30)
+    })
+    socket.on('paintStart', (data) => {
+      canDraw = true
+      showPaintPage(data)
+      // var video = document.getElementById('video')
+      // video.style.display = 'none'
+      // localstream = document.getElementById('canvas').captureStream()
+      // for (let conn in peers) {
+      //   console.log('fadsfadsgsaggfas',localstream)
+      //   peers[conn].addStream(localstream)
+      // }
+    })
+    // 展示答案
+    socket.on('showAnswer', data => {
+      showAnswer(data)
+      time.animation(5)
+    })
+
+    // 连接nat穿透
+
+    // 收到offer
+    socket.on('offer', (data) => {
+      console.log('setRemoteDescription-offer-sdp', data.conn, data.sdp)
+      var peer = peers[data.conn]
+      peer.setRemoteDescription(data.sdp, () => {
+        peer.createAnswer()
+        .then(answer => {
+          peer.setLocalDescription(answer, () => {
+            console.log('setLocalDescription-answer', data.conn, answer)
+            socket.emit('answer', {room: room, user: data.toUser, toUser: data.user, conn: data.conn, sdp: answer})
+          })
+        })
+      })
+    })
+    // 收到answer
+    socket.on('answer', (data) => {
+      // 呼叫端设置远程 answer 描述
+      var peer = peers[data.conn]
+      peer.setRemoteDescription(data.sdp, () => {
+        console.log('setRemoteDescription-answer-sdp', data.conn, data.sdp)
+      }) 
+    })
+    // 收到Ice
+    socket.on('ice', (data) => {
+      console.log('onice', data.conn, data.candidate)
+      var peer = peers[data.conn]
+      console.log('------------------------peer',peer)
+      peer.addIceCandidate(data.candidate); // 设置远程 ICE
+    })
+  </script>
+</body>
+
+</html>
